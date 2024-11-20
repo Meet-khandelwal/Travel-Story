@@ -3,16 +3,21 @@ const bcrypt = require("bcrypt")
 const express = require("express")
 const cors = require("cors")
 const jwt = require("jsonwebtoken")
-const config = require("./config.json")
+
 const mongoose = require("mongoose")
 const {authenticateToken} = require('./utilities')
 const upload = require('./multer')
 const fs = require('fs')
 const path = require('path')
 
-mongoose.connect((config.connectionString)).then(()=>{
-    console.log("database connected")
-})
+
+mongoose.connect(process.env.MONGO_URI).then(() => {
+    console.log("Database connected");
+}).catch(err => {
+    console.error("Database connection error:", err);
+});
+
+
 const app = express()
 app.use(express.json())
 app.use(cors({origin:"*"}))
@@ -113,7 +118,8 @@ app.post('/image-upload',upload.single("image"), (req,res)=>{
             return res.status(400).json({error:true,
                 message:"no image uploaded"})
         }
-        const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`
+       // const imageUrl = `http://localhost:8000/uploads/${req.file.filename}`
+       const imageUrl = `${process.env.BACKEND_URL}/uploads/${req.file.filename}`;
         res.status(200).json({imageUrl})
     }catch(err){
         res.status(500).json({error:true,message:error.message})
@@ -213,7 +219,9 @@ app.put("/edit-story/:id",authenticateToken,async (req,res)=>{
             return res.status(400).   json({error:true,message:"Travel story not found"})
         }
 
-        const placeHolderImageUrl = `http://localhost:8000/assets/placeholder.png`
+        //const placeHolderImageUrl = `http://localhost:8000/assets/placeholder.png`
+        const placeHolderImageUrl = `${process.env.BACKEND_URL}/assets/placeholder.png`;
+
 
         travelStory.title = title
         travelStory.story = story
@@ -333,6 +341,9 @@ app.get("/travel-stories/filter",authenticateToken,async(req,res)=>{
 })
 
 
-app.listen(8000)
+const PORT = process.env.PORT || 3000;  // Use port from .env or default to 3000
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
 module.exports = app
 
