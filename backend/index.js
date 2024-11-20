@@ -10,7 +10,7 @@ const upload = require('./multer')
 const fs = require('fs')
 const path = require('path')
 
-mongoose.connect((config.connectionString)).then(()=>{
+mongoose.connect(process.env.MONGO_URI).then(()=>{
     console.log("database connected")
 })
 const app = express()
